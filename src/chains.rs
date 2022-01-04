@@ -11,8 +11,8 @@ pub trait Chain {
     where
         Self: Sized;
     fn execute_transaction(&self, data: &utils::MultisendInstruction) -> Result<()>;
-    fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<bool>;
-    fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<bool>;
+    fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<()>;
+    fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<()>;
 }
 
 impl Chain for Solana {
@@ -29,11 +29,11 @@ impl Chain for Solana {
         solana::send_transaction(&keypair, &self.network, instructions)
     }
 
-    fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<bool> {
+    fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<()> {
         solana::validate_addrs(data)
     }
 
-    fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<bool> {
+    fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<()> {
         solana::validate_balance(&self.network, data)
     }
 }

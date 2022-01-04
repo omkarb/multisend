@@ -77,7 +77,7 @@ pub fn build_transfer_instruction(
     system_instruction::transfer_many(&keypair.pubkey(), &recipients)
 }
 
-pub fn validate_addrs(data: &utils::MultisendInstruction) -> Result<bool> {
+pub fn validate_addrs(data: &utils::MultisendInstruction) -> Result<()> {
     for instr in &data.recipients {
         let _status = match Pubkey::from_str(&instr.address) {
             Ok(_s) => _s,
@@ -101,10 +101,10 @@ pub fn validate_addrs(data: &utils::MultisendInstruction) -> Result<bool> {
             }
         };
     }
-    Ok(true)
+    Ok(())
 }
 
-pub fn validate_balance(network: &str, data: &utils::MultisendInstruction) -> Result<bool> {
+pub fn validate_balance(network: &str, data: &utils::MultisendInstruction) -> Result<()> {
     let keypair = initialize_wallet("wallet", None).unwrap();
     let client = rpc_connection(network);
     for sender in &data.senders {
@@ -122,5 +122,5 @@ pub fn validate_balance(network: &str, data: &utils::MultisendInstruction) -> Re
         }
     }
 
-    Ok(true)
+    Ok(())
 }
