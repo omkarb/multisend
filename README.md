@@ -9,9 +9,10 @@ This tool currently supports payments on Solana; we'll add Terra capabilities in
 
 
 ### On Deck: 
-1. Optionally accepting a keyfile instead of a std.in seed phrase.
+1. Initial test cases.
 2. Add Terra native currency functionality.
-3. Add Terra CW-20 tokens functionality.
+3. Optionally accepting a keyfile instead of a std.in seed phrase.
+4. Add Terra CW-20 tokens functionality.
 
 ### USAGE:
     multisend [OPTIONS] -p <path> <SUBCOMMAND>
@@ -55,7 +56,7 @@ This tool currently supports payments on Solana; we'll add Terra capabilities in
             "coin": "SOL"
         }
     ]
-}```
-
+}
+```
 2. `./multisend -p {path} validate` to ensure json is valid, amounts are correct, and all addresses are valid.
 3. `./multisend -p {} -n {mainnet} broadcast-transaction` to execute the transaction.
