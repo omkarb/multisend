@@ -30,9 +30,9 @@ pub fn validate_tx_amounts(data: &MultisendInstruction) -> Result<bool> {
     let senders_amount = data.senders.iter().fold(0.0, |acc, x| acc + x.amount);
     println!("Sender amount {}", senders_amount);
     if recipient_amount != senders_amount {
-        return Err(Error::InvalidConfig(format!(
-            "Sender & Receiver amount mismatch"
-        )));
+        return Err(Error::InvalidConfig(
+            "Sender & Receiver amount mismatch".to_string(),
+        ));
     }
     Ok(true)
 }
