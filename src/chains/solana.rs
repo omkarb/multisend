@@ -32,7 +32,7 @@ fn rpc_connection(network: &str) -> RpcClient {
     let url = match network {
         // Config option.
         "devnet" => String::from("https://api.devnet.solana.com"),
-        "mainnet" => String::from("https://api.solana.com"),
+        "mainnet" => String::from("https://api.mainnet-beta.solana.com"),
         _ => String::from("https://api.devnet.solana.com"),
     };
     RpcClient::new(url)
