@@ -1,34 +1,41 @@
 use clap::{crate_name, crate_version, App, AppSettings, Arg, ArgMatches, SubCommand};
-use multisend::chains::{Chain, Solana};
+use multisend::chains::{Chain, Solana, Terra};
 use multisend::utils;
 use multisend::Result;
 use std::process;
 
 fn run(matches: &ArgMatches) -> Result<()> {
+    let chain: Box<dyn Chain>;
     let data = utils::read_instruction_json(matches.value_of("path").unwrap())?;
     let network = matches.value_of("network").unwrap_or("devnet").to_owned();
-    let chain = match matches.value_of("network") {
-        // Right now there's only one option here but we can add more later.
-        _ => Box::new(Solana { network }),
+    chain = match matches.value_of("network").unwrap_or("terra") {
+        "solana" => Box::new(Solana { network }),
+        "terra" => Box::new(Terra { network }),
+        _ => Box::new(Terra { network }),
     };
     let _results = match matches.subcommand() {
         ("broadcast-transaction", _) => execute_transaction(chain, &data),
         ("validate", _) => run_validate(chain, &data),
+        ("init", _) => init(chain),
         _ => (),
     };
     Ok(())
 }
 
 fn run_validate(chain: Box<dyn Chain>, data: &utils::MultisendInstruction) {
-    let _valid_amounts =
-        utils::validate_tx_amounts(data).expect("Sender & Receiver amount mismatch");
-    let _valid_addrs = chain
-        .validate_addrs(data)
-        .expect("Address Validation Error");
+    // let _valid_amounts =
+    //     utils::validate_tx_amounts(data).expect("Sender & Receiver amount mismatch");
+    // let _valid_addrs = chain
+    //     .validate_addrs(data)
+    //     .expect("Address Validation Error");
     let _valid_addrs = chain
         .validate_balance(data)
         .expect("Balance Validation Error");
     println!("Successfully validated.");
+}
+
+fn init(chain: Box<dyn Chain>) {
+    chain.initialize_wallet();
 }
 
 fn execute_transaction(chain: Box<dyn Chain>, data: &utils::MultisendInstruction) {
@@ -57,7 +64,7 @@ fn main() {
             Arg::with_name("path")
                 .short("p")
                 .takes_value(true)
-                .required(true)
+                // .required(true)
                 .help("Path for the transactions file."),
         )
         .subcommand(
@@ -67,6 +74,7 @@ fn main() {
         .subcommand(
             SubCommand::with_name("broadcast-transaction").about("Send configured transaction"),
         )
+        .subcommand(SubCommand::with_name("init").about("Send configured transaction"))
         .get_matches();
 
     if let Err(e) = run(&matches) {

@@ -25,10 +25,11 @@ pub fn initialize_wallet(
     let keys =
         keypair::keypair_from_seed_phrase(keypair_name, false, false, derivation_path, false)
             .expect("Couldn't derive seed");
+
     Ok(keys)
 }
 
-fn rpc_connection(network: &str) -> RpcClient {
+pub fn rpc_connection(network: &str) -> RpcClient {
     let url = match network {
         // Config option.
         "devnet" => String::from("https://api.devnet.solana.com"),
