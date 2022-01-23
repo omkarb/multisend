@@ -16,26 +16,21 @@ fn run(matches: &ArgMatches) -> Result<()> {
     let _results = match matches.subcommand() {
         ("broadcast-transaction", _) => execute_transaction(chain, &data),
         ("validate", _) => run_validate(chain, &data),
-        ("init", _) => init(chain),
         _ => (),
     };
     Ok(())
 }
 
 fn run_validate(chain: Box<dyn Chain>, data: &utils::MultisendInstruction) {
-    // let _valid_amounts =
-    //     utils::validate_tx_amounts(data).expect("Sender & Receiver amount mismatch");
-    // let _valid_addrs = chain
-    //     .validate_addrs(data)
-    //     .expect("Address Validation Error");
+    let _valid_amounts =
+        utils::validate_tx_amounts(data).expect("Sender & Receiver amount mismatch");
+    let _valid_addrs = chain
+        .validate_addrs(data)
+        .expect("Address Validation Error");
     let _valid_addrs = chain
         .validate_balance(data)
         .expect("Balance Validation Error");
     println!("Successfully validated.");
-}
-
-fn init(chain: Box<dyn Chain>) {
-    chain.initialize_wallet();
 }
 
 fn execute_transaction(chain: Box<dyn Chain>, data: &utils::MultisendInstruction) {
@@ -74,7 +69,6 @@ fn main() {
         .subcommand(
             SubCommand::with_name("broadcast-transaction").about("Send configured transaction"),
         )
-        .subcommand(SubCommand::with_name("init").about("Send configured transaction"))
         .get_matches();
 
     if let Err(e) = run(&matches) {

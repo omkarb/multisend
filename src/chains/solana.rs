@@ -29,7 +29,7 @@ pub fn initialize_wallet(
     Ok(keys)
 }
 
-pub fn rpc_connection(network: &str) -> RpcClient {
+fn rpc_connection(network: &str) -> RpcClient {
     let url = match network {
         // Config option.
         "devnet" => String::from("https://api.devnet.solana.com"),

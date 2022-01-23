@@ -2,8 +2,6 @@ pub mod solana;
 pub mod terra;
 
 use crate::{utils, Result};
-use solana_client::rpc_client;
-use terra_rust_api;
 
 pub struct Solana {
     pub network: String,
@@ -20,7 +18,6 @@ pub trait Chain {
     fn execute_transaction(&self, data: &utils::MultisendInstruction) -> Result<()>;
     fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<()>;
     fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<()>;
-    fn initialize_wallet(&self) -> Result<()>;
 }
 
 impl Chain for Solana {
@@ -44,10 +41,6 @@ impl Chain for Solana {
     fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<()> {
         solana::validate_balance(&self.network, data)
     }
-
-    fn initialize_wallet(&self) -> Result<()> {
-        Ok(())
-    }
 }
 
 impl Chain for Terra {
@@ -66,11 +59,5 @@ impl Chain for Terra {
 
     fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<()> {
         terra::validate_balance(&self.network, data)
-    }
-
-    fn initialize_wallet(&self) -> Result<()> {
-        let address = terra::initialize_wallet()?;
-        print!("{:?}", address.account());
-        Ok(())
     }
 }
