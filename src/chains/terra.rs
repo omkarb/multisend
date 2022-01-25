@@ -8,14 +8,71 @@ use std::io::Write;
 use tokio;
 
 const TERRA_DECIMAL: f64 = 1_000_000.0;
-
-use terra_rust_api::{GasOptions, PrivateKey, PublicKey, Terra};
+use terra_rust_api::core_types::Coin;
+use terra_rust_api::{GasOptions, Message, MsgExecuteContract, PrivateKey, PublicKey, Terra};
 
 #[derive(Serialize, Debug)]
-pub struct MsgTransfer {
-    pub amount: u64,
-    pub from_address: String,
-    pub to_address: String,
+#[serde(rename_all = "snake_case")]
+pub enum ExecuteMsg<'a> {
+    Transfer { amount: &'a str, recipient: &'a str },
+}
+
+impl ExecuteMsg<'static> {
+    pub fn create_transfer<'a>(
+        amount: u64,
+        from_address: &'a str,
+        to_address: &'a str,
+        contract: &'a str,
+    ) -> Message {
+        let transfer = ExecuteMsg::Transfer {
+            amount: &amount.to_string(),
+            recipient: to_address,
+        };
+        let tranfser_json = serde_json::to_string(&transfer).unwrap();
+        println!("{}", tranfser_json);
+        let coins: Vec<Coin> = vec![];
+        MsgExecuteContract::create_from_json(from_address, contract, &tranfser_json, &coins)
+            .unwrap()
+    }
+}
+
+#[tokio::main]
+pub async fn send_transaction(
+    network: &str,
+    from_key: PrivateKey,
+    msgs: Vec<Message>,
+) -> Result<()> {
+    let client = rpc_connection(network, "1uusd", 1.4).unwrap();
+    let json = serde_json::to_string(&msgs).unwrap();
+    print!("{}", json);
+    let secp = Secp256k1::new();
+
+    let resp = client
+        .submit_transaction_sync(&secp, &from_key, msgs, Some("TEST token multi".to_string()))
+        .await
+        .unwrap();
+    let hash = resp.txhash;
+    print!("{}", hash);
+    Ok(())
+}
+
+pub fn build_transfer_msgs(
+    sender_address: &PublicKey,
+    data: &utils::MultisendInstruction,
+) -> Vec<Message> {
+    let transfer: Vec<Message> = data
+        .recipients
+        .iter()
+        .map(|instr| {
+            ExecuteMsg::create_transfer(
+                (instr.amount * TERRA_DECIMAL) as u64,
+                &sender_address.account().unwrap(),
+                &instr.address,
+                &instr.coin,
+            )
+        })
+        .collect();
+    return transfer;
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -47,17 +104,27 @@ impl QueryMsg {
     }
 }
 
-pub fn initialize_wallet() -> Result<PublicKey> {
+pub fn initialize_wallet() -> Result<PrivateKey> {
     print!("Seed phrase: ");
     std::io::stdout().flush().unwrap();
     let password = read_password().unwrap();
     let secp = Secp256k1::new();
     let from_key = PrivateKey::from_words(&secp, &password, 0, 0).unwrap();
-    Ok(from_key.public_key(&secp))
+    Ok(from_key)
+}
+
+fn sender_public_key() -> PublicKey {
+    let from_key = initialize_wallet().unwrap();
+    get_public_key(&from_key)
+}
+
+pub fn get_public_key(from_key: &PrivateKey) -> PublicKey {
+    let secp = Secp256k1::new();
+    from_key.public_key(&secp)
 }
 
 pub fn validate_balance(network: &str, data: &utils::MultisendInstruction) -> Result<()> {
-    let address = initialize_wallet()?;
+    let address = sender_public_key();
     let client = rpc_connection(network, "", 1.4).unwrap();
     for sender in &data.senders {
         let balance = get_token_balance(&client, &sender.coin, &address)?;
@@ -81,7 +148,7 @@ async fn get_token_balance(
     client: &Terra,
     token_contract: &str,
     address: &PublicKey,
-) -> Result<(u64)> {
+) -> Result<u64> {
     let balance_query = QueryMsg::Balance {
         address: address.account().expect("Balance Lookup Failed"),
     };

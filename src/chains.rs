@@ -50,6 +50,12 @@ impl Chain for Terra {
 
     fn execute_transaction(&self, data: &utils::MultisendInstruction) -> Result<()> {
         // initialize wallet with seed phrase + optional derivation path.
+        let from_key = terra::initialize_wallet().unwrap();
+        let public_key = terra::get_public_key(&from_key);
+
+        let msgs = terra::build_transfer_msgs(&public_key, data);
+        terra::send_transaction(&self.network, from_key, msgs)
+            .expect("Sending Transaction failed.");
         Ok(())
     }
 
