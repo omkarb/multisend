@@ -9,22 +9,18 @@ pub struct Solana {
 
 pub struct Terra {
     pub network: String,
+    pub gas_price: String,
+    pub memo: String,
+    pub gas_adj: f64,
 }
 
 pub trait Chain {
-    fn new(&self, name: String) -> Self
-    where
-        Self: Sized;
     fn execute_transaction(&self, data: &utils::MultisendInstruction) -> Result<()>;
     fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<()>;
     fn validate_balance(&self, data: &utils::MultisendInstruction) -> Result<()>;
 }
 
 impl Chain for Solana {
-    fn new(&self, network: String) -> Solana {
-        Solana { network: network }
-    }
-
     fn execute_transaction(&self, data: &utils::MultisendInstruction) -> Result<()> {
         // initialize wallet with seed phrase + optional derivation path.
         let keypair = solana::initialize_wallet("wallet", None).unwrap();
@@ -44,18 +40,21 @@ impl Chain for Solana {
 }
 
 impl Chain for Terra {
-    fn new(&self, network: String) -> Terra {
-        Terra { network: network }
-    }
-
     fn execute_transaction(&self, data: &utils::MultisendInstruction) -> Result<()> {
         // initialize wallet with seed phrase + optional derivation path.
         let from_key = terra::initialize_wallet().unwrap();
         let public_key = terra::get_public_key(&from_key);
 
         let msgs = terra::build_transfer_msgs(&public_key, data);
-        terra::send_transaction(&self.network, from_key, msgs)
-            .expect("Sending Transaction failed.");
+        terra::send_transaction(
+            &self.network,
+            &self.gas_price,
+            self.gas_adj,
+            &self.memo,
+            from_key,
+            msgs,
+        )
+        .expect("Sending Transaction failed.");
         Ok(())
     }
 

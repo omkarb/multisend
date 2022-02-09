@@ -29,7 +29,6 @@ impl ExecuteMsg<'static> {
             recipient: to_address,
         };
         let tranfser_json = serde_json::to_string(&transfer).unwrap();
-        println!("{}", tranfser_json);
         let coins: Vec<Coin> = vec![];
         MsgExecuteContract::create_from_json(from_address, contract, &tranfser_json, &coins)
             .unwrap()
@@ -39,20 +38,21 @@ impl ExecuteMsg<'static> {
 #[tokio::main]
 pub async fn send_transaction(
     network: &str,
+    gas_price: &str,
+    gas_adj: f64,
+    memo: &String,
     from_key: PrivateKey,
     msgs: Vec<Message>,
 ) -> Result<()> {
-    let client = rpc_connection(network, "1uusd", 1.4).unwrap();
-    let json = serde_json::to_string(&msgs).unwrap();
-    print!("{}", json);
+    let client = rpc_connection(network, gas_price, gas_adj).unwrap();
     let secp = Secp256k1::new();
-
-    let resp = client
-        .submit_transaction_sync(&secp, &from_key, msgs, Some("TEST token multi".to_string()))
-        .await
-        .unwrap();
-    let hash = resp.txhash;
-    print!("{}", hash);
+    print!("{}, {}, {:?}", gas_price, gas_adj, memo.to_string());
+    // let resp = client
+    //     .submit_transaction_sync(&secp, &from_key, msgs, Some(memo.to_string()))
+    //     .await
+    //     .unwrap();
+    // let hash = resp.txhash;
+    // print!("https://finder.terra.money/mainnet/tx/{}", hash);
     Ok(())
 }
 
