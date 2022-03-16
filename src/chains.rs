@@ -26,7 +26,13 @@ impl Chain for Solana {
         // build instructions
         let instructions = solana::build_transfer_instruction(&keypair, data);
         // send transaction
-        solana::send_transaction(&keypair, &self.network, instructions)
+        // We send transactions in batches of 20 transfers because solana has a max data size
+        // and after about twenty transfers we run out of space.
+        for instruction_batch in instructions.chunks(20) {
+            solana::send_transaction(&keypair, &self.network, instruction_batch.to_vec())
+                .expect("Transaction Failed to Successfully Execute.");
+        }
+        Ok(())
     }
 
     fn validate_addrs(&self, data: &utils::MultisendInstruction) -> Result<()> {
