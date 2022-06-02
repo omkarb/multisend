@@ -16,3 +16,9 @@ solana-client = "=1.8.1"
 solana-program = "=1.8.1"
 solana-sdk = "=1.8.1"
 thiserror = "1"
+terra-rust-api = "1.1.8"
+rpassword = "0.0.4"
+base64 = "0.13.0"
+futures = "0.3.19"
+tokio = { version = "1.15.0", features = ["full"] }
+secp256k1 = { version = "0.20.3", default-features = false }

@@ -25,6 +25,7 @@ pub fn initialize_wallet(
     let keys =
         keypair::keypair_from_seed_phrase(keypair_name, false, false, derivation_path, false)
             .expect("Couldn't derive seed");
+
     Ok(keys)
 }
 
